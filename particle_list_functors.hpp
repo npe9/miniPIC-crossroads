@@ -190,6 +190,27 @@ protected:
   Teuchos::RCP<Map> element_map_;
 };
 
+/// This class prepares data for unpacking
+class PrepareForUnpacking : public BaseKokkosFunctor {
+public:
+  PrepareForUnpacking(ParticleList particles,Kokkos::View<Particle*> recv_buffer, Mesh mesh) :
+    BaseKokkosFunctor("UnpackParticlesForMigration"), particles_(particles), recv_buffer_(recv_buffer), elem_map_(particles_.element_map_->getLocalMap()), mesh_(mesh) {}
+
+  /// Fill functor
+  KOKKOS_INLINE_FUNCTION
+  void operator () (std:: size_t i) const {
+      recv_buffer_(i).ielement = elem_map_.getLocalElement(recv_buffer_(i).ielement);
+      mesh_.physToReference(recv_buffer_(i).x_ref, recv_buffer_(i).x, recv_buffer_(i).ielement);
+      mesh_.physToReferenceVector(recv_buffer_(i).v_ref, recv_buffer_(i).v, recv_buffer_(i).x_ref, recv_buffer_(i).ielement);
+  }
+
+
+protected:
+  ParticleList particles_;
+  Kokkos::View<Particle*>  recv_buffer_;
+  Mesh mesh_;
+  const Map::local_map_type elem_map_;
+};
 /// This class packs the particles into the arrays owned by the particle list class for migration and actually calls the migration
 /// and then unpacks them in
 class MigrateParticles : public BaseKokkosFunctor {
@@ -269,11 +290,13 @@ public:
     particles_.migrate_count_() = 0;
 
     if (nrecv > 0) {
-      for (int i=0; i<nrecv; ++i) {
-        recv_buffer(i).ielement = particles_.element_map_->getLocalElement(recv_buffer(i).ielement);
-        mesh_.physToReference(recv_buffer(i).x_ref, recv_buffer(i).x, recv_buffer(i).ielement);
-        mesh_.physToReferenceVector(recv_buffer(i).v_ref, recv_buffer(i).v, recv_buffer(i).x_ref, recv_buffer(i).ielement);
-      }
+      PrepareForUnpacking prepare_functor(particles_, recv_buffer, mesh_);
+      Kokkos::parallel_for(nrecv, prepare_functor);
+      //for (int i=0; i<nrecv; ++i) {
+        //recv_buffer(i).ielement = particles_.element_map_->getLocalElement(recv_buffer(i).ielement);
+        //mesh_.physToReference(recv_buffer(i).x_ref, recv_buffer(i).x, recv_buffer(i).ielement);
+        //mesh_.physToReferenceVector(recv_buffer(i).v_ref, recv_buffer(i).v, recv_buffer(i).x_ref, recv_buffer(i).ielement);
+      //}
       UnpackParticlesFromMigration unpack_functor(particles_, recv_buffer, particles_.element_map_);
       int nteams = TeamPolicy::team_size_recommended(unpack_functor);
       TeamPolicy policy((nrecv-1)/nteams+1, nteams);

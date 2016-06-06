@@ -313,6 +313,7 @@ protected:
 
   friend class DeleteParticles;
   friend class MigrateParticles;
+  friend class PrepareForUnpacking;
   /// THis is a unit test
   friend struct TestMigrationSetup;
 
