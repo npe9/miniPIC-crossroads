@@ -236,7 +236,7 @@ public:
   void set_neighboring_procs(std::set<int> neighbors);
 
   /// Sets the map for elements on the particle mesh for migration of particles
-  void set_element_map(Teuchos::RCP<Map> map) { element_map_ = map;}
+  void set_element_map(Teuchos::RCP<const DeviceMap> map) { element_map_ = map;}
 
   /// Sort the particle list
   void sort();
@@ -309,7 +309,7 @@ protected:
 
   GO max_capacity_;
 
-  Teuchos::RCP<Map> element_map_;
+  Teuchos::RCP<const DeviceMap> element_map_;
 
   friend class DeleteParticles;
   friend class MigrateParticles;

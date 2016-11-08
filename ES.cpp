@@ -116,6 +116,10 @@ ES::ES(Mesh &mesh) :mesh_(mesh) {
     overlap_phi_ = Teuchos::RCP<Vector>(new Vector(mesh_.node_map));
     rhs_ = Teuchos::RCP<Vector>(new Vector(mesh_.owned_node_map));
     overlap_rhs_ = Teuchos::RCP<Vector>(new Vector(mesh_.node_map));
+    phi_dev_ = Teuchos::RCP<DeviceVector>(new DeviceVector(mesh_.owned_node_map_dev));
+    overlap_phi_dev_ = Teuchos::RCP<DeviceVector>(new DeviceVector(mesh_.node_map_dev));
+    rhs_dev_ = Teuchos::RCP<DeviceVector>(new DeviceVector(mesh_.owned_node_map_dev));
+    overlap_rhs_dev_ = Teuchos::RCP<DeviceVector>(new DeviceVector(mesh_.node_map_dev));
     export_ = Teuchos::RCP<Export>(new Export(mesh_.node_map, mesh_.owned_node_map));
     import_ = Teuchos::RCP<Import>(new Import(mesh_.owned_node_map, mesh_.node_map));
 
@@ -200,17 +204,22 @@ ES::ES(Mesh &mesh) :mesh_(mesh) {
     }
     matrix_->fillComplete();
 
-    rhs_dual_view_ = rhs_->getDualView();
-    overlap_rhs_dual_view_ = overlap_rhs_->getDualView();
-    phi_dual_view_ = phi_->getDualView();
-    overlap_phi_dual_view_ = overlap_phi_->getDualView();
+    rhs_dual_view_ = rhs_dev_->getDualView();
+    overlap_rhs_dual_view_ = overlap_rhs_dev_->getDualView();
+    overlap_rhs_dual_view_host_ = overlap_rhs_->getDualView();
+    overlap_phi_dual_view_host_ = overlap_phi_->getDualView();
+    phi_dual_view_ = phi_dev_->getDualView();
+    overlap_phi_dual_view_ = overlap_phi_dev_->getDualView();
 }
 
 
 bool ES::solve(FLOAT tol) {
+  Kokkos::deep_copy(overlap_rhs_dual_view_host_.h_view, overlap_rhs_dual_view_.d_view);
   rhs_->doExport(*overlap_rhs_, *export_, Tpetra::ADD);
   bool result = BiCGStab_solve(matrix_, rhs_, phi_, tol);
+
   overlap_phi_->doImport(*phi_, *import_, Tpetra::INSERT);
+  Kokkos::deep_copy(overlap_phi_dual_view_.d_view, overlap_phi_dual_view_host_.h_view);
 
 
   if ( false ) {

@@ -150,7 +150,6 @@ void PIC::weight_charge() {
   }
   WeightChargeFunctor wc(data_);
 #endif
-  Kokkos::deep_copy(ES_.overlap_rhs_dual_view_.h_view, ES_.overlap_rhs_dual_view_.d_view);
   Kokkos::fence();
   /// We have to do this on the hose because maps don't work on the device
   for (LO i=0; i < static_cast<LO>(mesh_.boundary_node_map->getNodeNumElements()); ++i) {

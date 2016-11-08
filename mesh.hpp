@@ -122,10 +122,13 @@ public:
   int dimension;
 
   Teuchos::RCP<Map> element_map, node_map;
+  Teuchos::RCP<const DeviceMap> element_map_dev;
   Teuchos::RCP<Map> boundary_node_map, boundary_edge_map, boundary_face_map;
   Teuchos::RCP<Map> face_map;
   Teuchos::RCP<Map> edge_map;
   Teuchos::RCP<const Map> owned_node_map, owned_face_map, owned_edge_map;
+  Teuchos::RCP<const DeviceMap> owned_node_map_dev;
+  Teuchos::RCP<const DeviceMap> node_map_dev;
   Teuchos::RCP<const Map> owned_boundary_face_map, owned_boundary_edge_map;
 
   // connectivity data

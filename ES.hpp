@@ -89,16 +89,22 @@ protected:
 
   Teuchos::RCP<Matrix> matrix_;
   Teuchos::RCP<Vector> rhs_;
+  Teuchos::RCP<DeviceVector> rhs_dev_;
   VectorDualVeiw rhs_dual_view_;
 
   Teuchos::RCP<Vector> overlap_rhs_;
+  Teuchos::RCP<DeviceVector> overlap_rhs_dev_;
   VectorDualVeiw overlap_rhs_dual_view_;
+  HostVectorDualView overlap_rhs_dual_view_host_;
 
   Teuchos::RCP<Vector> phi_;
+  Teuchos::RCP<DeviceVector> phi_dev_;
   VectorDualVeiw phi_dual_view_;
 
   Teuchos::RCP<Vector> overlap_phi_;
+  Teuchos::RCP<DeviceVector> overlap_phi_dev_;
   VectorDualVeiw overlap_phi_dual_view_;
+  HostVectorDualView overlap_phi_dual_view_host_;
 
   Teuchos::RCP<Export> export_;
   Teuchos::RCP<Import> import_;

@@ -63,7 +63,7 @@ public:
 
         MoveParticle(const Mesh &mesh, const ParticleList &particles, bool kill_particles = false) :
         BaseKokkosFunctor("ParticleListFillFunctor"),
-        mesh_(mesh),  elem_map_(mesh_.element_map->getLocalMap()),particles_(particles), dt_(0), num_particles_(-1),
+        mesh_(mesh),  elem_map_(mesh_.element_map_dev->getLocalMap()),particles_(particles), dt_(0), num_particles_(-1),
         global_working_particle_("working_particle"),kill_particle_on_wall_(kill_particles)
         {
         }
@@ -338,7 +338,7 @@ public:
 
     protected:
       const Mesh mesh_;
-    const Map::local_map_type elem_map_;
+    const DeviceMap::local_map_type elem_map_;
       ParticleList particles_;
       double dt_;
       GO num_particles_;
@@ -351,7 +351,7 @@ public:
   ParticleMove ( DataWarehouse &data) : data_(data), mesh_(data_.mesh()),particles_(data_.particles()), types_(data.particle_type_list()),
       move_particle_(mesh_, particles_, data_.kill_particles_on_wall_impact()){
     particles_.set_neighboring_procs(mesh_.neighboring_procs);
-    particles_.set_element_map(mesh_.element_map);
+    particles_.set_element_map(mesh_.element_map_dev);
     data.particles_reference() = particles_;
     move_particle_.reset_particle_list(particles_);
     scale_ = 1.0;

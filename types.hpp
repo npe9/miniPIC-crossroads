@@ -75,20 +75,24 @@ typedef Kokkos::View<const FLOAT**[3][3], Kokkos::MemoryTraits<Kokkos::RandomAcc
 typedef Kokkos::View<FLOAT**[3][3] > TEMP_JACOBIAN_ARRAY;
 
 typedef Kokkos::DefaultExecutionSpace DeviceSpace;
-typedef Kokkos::HostSpace HostSpace;
+typedef Kokkos::Serial HostSpace;
 typedef Kokkos::Compat::KokkosDeviceWrapperNode<DeviceSpace> NodeType;
+typedef Kokkos::Compat::KokkosDeviceWrapperNode<HostSpace> HostNodeType;
 typedef Kokkos::TeamPolicy<DeviceSpace> TeamPolicy;
 typedef TeamPolicy::member_type member_type;
 
 
-typedef Tpetra::Map<LO, GO, NodeType> Map;
+typedef Tpetra::Map<LO, GO, HostNodeType> Map;
+typedef Tpetra::Map<LO, GO, NodeType> DeviceMap;
 
-typedef Tpetra::CrsGraph<LO, GO, NodeType> Graph;
-typedef Tpetra::Vector<FLOAT, LO, GO, NodeType> Vector;
+typedef Tpetra::CrsGraph<LO, GO, HostNodeType> Graph;
+typedef Tpetra::Vector<FLOAT, LO, GO, HostNodeType> Vector;
+typedef Tpetra::Vector<FLOAT, LO, GO, NodeType> DeviceVector;
 typedef Tpetra::Vector<FLOAT, LO, GO, NodeType>::dual_view_type VectorDualVeiw;
-typedef Tpetra::CrsMatrix<FLOAT, LO, GO, NodeType> Matrix;
-typedef Tpetra::Export<LO, GO, NodeType> Export;
-typedef Tpetra::Import<LO, GO, NodeType> Import;
+typedef Tpetra::Vector<FLOAT, LO, GO, HostNodeType>::dual_view_type HostVectorDualView;
+typedef Tpetra::CrsMatrix<FLOAT, LO, GO, HostNodeType> Matrix;
+typedef Tpetra::Export<LO, GO, HostNodeType> Export;
+typedef Tpetra::Import<LO, GO, HostNodeType> Import;
 
 
 

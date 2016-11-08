@@ -159,11 +159,14 @@ Mesh::Mesh( string &in_name, Teuchos::RCP<Teuchos::Comm<int> > mpi_, bool period
   // Make a map based on the elem gids
   element_map = Teuchos::RCP<Map>(new Map(Teuchos::OrdinalTraits<GO>::invalid(), elem_gids, 0, comm));
   num_global_elems = element_map->getGlobalNumElements();
+  element_map_dev = element_map->clone(Teuchos::RCP<NodeType>(new NodeType));
   assert(static_cast<GO>(num_global_elems) == num_tets_per_hex*nx*ny*nz);
 
   // Create node map
   node_map = Teuchos::RCP<Map>(new Map(Teuchos::OrdinalTraits<GO>::invalid(), node_gids, 0, comm));
-  owned_node_map = Tpetra::createOneToOne<LO, GO, NodeType>(node_map);
+  owned_node_map = Tpetra::createOneToOne<LO, GO, HostNodeType>(node_map);
+  owned_node_map_dev = owned_node_map->clone(Teuchos::RCP<NodeType>(new NodeType));
+  node_map_dev = node_map->clone(Teuchos::RCP<NodeType>(new NodeType));
   num_owned_nodes = owned_node_map->getNodeNumElements();
   assert(static_cast<GO>(owned_node_map->getGlobalNumElements()) == (nx+1)*(ny+1)*(nz+1));
 
@@ -574,7 +577,7 @@ Mesh::Mesh( string &in_name, Teuchos::RCP<Teuchos::Comm<int> > mpi_, bool period
   std::sort(face_gids.begin(), face_gids.end());
   face_gids.erase(std::unique(face_gids.begin(), face_gids.end()), face_gids.end());
   face_map = Teuchos::RCP<Map>(new Map(Teuchos::OrdinalTraits<GO>::invalid(), face_gids, 0, comm));
-  owned_face_map = Tpetra::createOneToOne<LO, GO, NodeType>(face_map);
+  owned_face_map = Tpetra::createOneToOne<LO, GO, HostNodeType>(face_map);
   assert(total_num_faces == owned_face_map->getGlobalNumElements());
   for (int i=0; i< num_elems; ++i)
     for (int j=0; j<4; ++j) {
@@ -590,7 +593,7 @@ Mesh::Mesh( string &in_name, Teuchos::RCP<Teuchos::Comm<int> > mpi_, bool period
 
   std::vector<GO> edge_gids(edge_gid_set.cbegin(), edge_gid_set.cend());
   edge_map = Teuchos::RCP<Map>(new Map(Teuchos::OrdinalTraits<GO>::invalid(), edge_gids, 0, comm));
-  owned_edge_map = Tpetra::createOneToOne<LO, GO, NodeType>(edge_map);
+  owned_edge_map = Tpetra::createOneToOne<LO, GO, HostNodeType>(edge_map);
   for (int i=0; i< num_elems; ++i)
     for (int j=0; j<num_edges_per_elem; ++j) {
       elem_to_edge_lids(i,j) = edge_map->getLocalElement(elem_to_edge_gids(i,j));
@@ -631,8 +634,8 @@ Mesh::Mesh( string &in_name, Teuchos::RCP<Teuchos::Comm<int> > mpi_, bool period
 						boundary_face_gids, 0, comm));
   boundary_edge_map = Teuchos::RCP<Map>(new Map(Teuchos::OrdinalTraits<GO>::invalid(), 
 						boundary_edge_gids, 0, comm));
-  owned_boundary_face_map = Tpetra::createOneToOne<LO, GO, NodeType>(boundary_face_map);
-  owned_boundary_edge_map = Tpetra::createOneToOne<LO, GO, NodeType>(boundary_edge_map);
+  owned_boundary_face_map = Tpetra::createOneToOne<LO, GO, HostNodeType>(boundary_face_map);
+  owned_boundary_edge_map = Tpetra::createOneToOne<LO, GO, HostNodeType>(boundary_edge_map);
 
   if(!periodic) {
     const int num_boundary_faces = 2*(2*nx*ny+2*nx*nz+2*ny*nz);

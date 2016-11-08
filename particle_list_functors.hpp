@@ -158,7 +158,7 @@ protected:
 class UnpackParticlesFromMigration : public BaseKokkosFunctor {
 public:
   typedef DeviceSpace::scratch_memory_space shmem_space ;
-  UnpackParticlesFromMigration(ParticleList particles,Kokkos::View<Particle*> recved_particles, Teuchos::RCP<Map> map) :
+  UnpackParticlesFromMigration(ParticleList particles,Kokkos::View<Particle*> recved_particles, Teuchos::RCP<const DeviceMap> map) :
     BaseKokkosFunctor("UnpackParticlesForMigration"), particles_(particles), recved_particles_(recved_particles), element_map_(map) {}
 
   /// This function says how much shared memory to allocate
@@ -187,7 +187,7 @@ public:
 protected:
   ParticleList particles_;
   Kokkos::View<Particle*>  recved_particles_;
-  Teuchos::RCP<Map> element_map_;
+  Teuchos::RCP<const DeviceMap> element_map_;
 };
 
 /// This class prepares data for unpacking
@@ -209,7 +209,7 @@ protected:
   ParticleList particles_;
   Kokkos::View<Particle*>  recv_buffer_;
   Mesh mesh_;
-  const Map::local_map_type elem_map_;
+  const DeviceMap::local_map_type elem_map_;
 };
 /// This class packs the particles into the arrays owned by the particle list class for migration and actually calls the migration
 /// and then unpacks them in
